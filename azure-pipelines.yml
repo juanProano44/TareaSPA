@@ -2,26 +2,27 @@ trigger:
 - main
 
 pool:
-  name: SelfHosted  # Cambia esto al nombre de tu pool auto-hospedado
+  name: SelfHosted
 
 steps:
 # Verificar que el directorio de fuentes existe
 - script: |
-    if [ -d "$(build.sourcesDirectory)" ]; then
+    echo Verificando directorio de fuentes...
+    if exist "$(build.sourcesDirectory)" (
       echo "Directorio de fuentes encontrado: $(build.sourcesDirectory)"
-    else
+    ) else (
       echo "Directorio de fuentes no encontrado. Abortando."
-      exit 1
-    fi
+      exit /b 1
+    )
   displayName: 'Verificar directorio de fuentes'
 
-# Archivar los archivos del proyecto (si el directorio de fuentes existe)
+# Archivar los archivos del proyecto
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(build.sourcesDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)\$(Build.BuildId).zip'
     replaceExistingArchive: true
   displayName: 'Archivar archivos del proyecto'
 
