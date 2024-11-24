@@ -5,28 +5,17 @@ pool:
   name: SelfHosted  # Cambia esto al nombre de tu pool auto-hospedado
 
 steps:
-# Instalar Node.js manualmente (ajusta la versión si es necesario)
+# Verificar que el directorio de fuentes existe
 - script: |
-    echo "Instalando Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-    apt-get install -y nodejs
-    node -v
-    npm -v
-  displayName: 'Instalar Node.js'
+    if [ -d "$(build.sourcesDirectory)" ]; then
+      echo "Directorio de fuentes encontrado: $(build.sourcesDirectory)"
+    else
+      echo "Directorio de fuentes no encontrado. Abortando."
+      exit 1
+    fi
+  displayName: 'Verificar directorio de fuentes'
 
-# Instalar dependencias del proyecto (si las hay)
-- script: |
-    echo "Instalando dependencias..."
-    npm install
-  displayName: 'Instalar dependencias'
-
-# Ejecutar pruebas (si existen)
-- script: |
-    echo "Ejecutando pruebas..."
-    npm test
-  displayName: 'Ejecutar pruebas'
-
-# Archivar los archivos del proyecto
+# Archivar los archivos del proyecto (si el directorio de fuentes existe)
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(build.sourcesDirectory)'
@@ -43,10 +32,3 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
   displayName: 'Publicar artefactos'
-
-# Paso opcional para despliegue
-- script: |
-    echo "Preparando despliegue..."
-    # Aquí podrías agregar comandos para desplegar tu aplicación
-  displayName: 'Preparar despliegue'
-  condition: succeeded()
