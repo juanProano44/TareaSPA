@@ -1,17 +1,52 @@
-# HTML
-# Archive your static HTML project and save it with the build record.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  name: SelfHosted  # Cambia esto al nombre de tu pool auto-hospedado
 
 steps:
+# Instalar Node.js manualmente (ajusta la versión si es necesario)
+- script: |
+    echo "Instalando Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+    apt-get install -y nodejs
+    node -v
+    npm -v
+  displayName: 'Instalar Node.js'
+
+# Instalar dependencias del proyecto (si las hay)
+- script: |
+    echo "Instalando dependencias..."
+    npm install
+  displayName: 'Instalar dependencias'
+
+# Ejecutar pruebas (si existen)
+- script: |
+    echo "Ejecutando pruebas..."
+    npm test
+  displayName: 'Ejecutar pruebas'
+
+# Archivar los archivos del proyecto
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(build.sourcesDirectory)'
     includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+  displayName: 'Archivar archivos del proyecto'
+
+# Publicar los artefactos generados
 - task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Publicar artefactos'
+
+# Paso opcional para despliegue
+- script: |
+    echo "Preparando despliegue..."
+    # Aquí podrías agregar comandos para desplegar tu aplicación
+  displayName: 'Preparar despliegue'
+  condition: succeeded()
